@@ -1,0 +1,50 @@
+##  Named of the workflow.
+name: project backend service - Package with Docker and Push
+
+## Set the trigger policy.
+## In this case, the workflow is execute on a `push` event,
+## or when a new commit is pushed to the repository.
+## In this case, we only care for the main branch.
+on:
+  push:
+    branches:
+      - 'main'
+    paths:
+      - 'docker/**'
+      - '.github/workflows/iot-yeelgw-bbox-dockerbuild.yml'
+
+## List the steps to be executed by the workflow
+jobs:
+  ## Set the name of the job
+  docker-build-and-push:
+    ## Configure the operating system the workflow should run on.
+    ## In this case, the job on Ubuntu
+    runs-on: ubuntu-latest
+
+    ## Define a sequence of steps to be executed 
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: docker/
+          file: docker/Dockerfile
+          push: true
+          platforms: linux/amd64
+          tags: ldfandian/iot-yeelgw-bbox:latest
